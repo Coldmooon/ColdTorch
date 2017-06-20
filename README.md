@@ -1,8 +1,8 @@
 
 ## Usage:
 
-RSampling: Sample input to random shape, nn.RSampling(minShape, maxShape)
-AutoPadding: Adaptively Crop or pad its input to the given shape, nn.AutoPadding(shape)
+- RSampling: Sample input to random shape, nn.RSampling(minShape, maxShape)
+- AutoPadding: Adaptively Crop or pad its input to the given shape, nn.AutoPadding(shape)
 
 ## Installation
 
