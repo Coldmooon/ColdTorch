@@ -1,12 +1,14 @@
 local AutoPadding, parent = torch.class('nn.AutoPadding', 'nn.Module')
 
-function AutoPadding:__init(shape)
+function AutoPadding:__init(shape, diff)
    parent.__init(self)
    self.shape = shape
    self.pad_l = nil
    self.pad_r = nil
    self.pad_t = nil
    self.pad_b = nil
+   self.train = true
+   self.diff  = diff or false
 end
 
 local function compute_shape(input_h, input_w, shape)
@@ -22,6 +24,11 @@ local function compute_shape(input_h, input_w, shape)
 end
 
 function AutoPadding:updateOutput(input)
+   if (not self.train) and self.diff then 
+      print('skip forward in AutoPadding')
+      self.output:resizeAs(input):copy(input)
+      return self.output
+   end
    if input:dim() == 3 then
 
       local input_h = input:size(2)
@@ -81,6 +88,7 @@ function AutoPadding:updateOutput(input)
          error('output shape computed wrong') 
       end
       if w < 1 or h < 1 then error('input is too small') end
+      print('auto cropping to ', h, 'x', w)
       self.output:resize(input:size(1), input:size(2), h, w)
       self.output:zero()
       -- crop input if necessary
@@ -104,6 +112,12 @@ function AutoPadding:updateOutput(input)
 end
 
 function AutoPadding:updateGradInput(input, gradOutput)
+   if (not self.train) and self.diff then 
+      print('skip backward in AutoPadding')
+      -- self.gradInput = gradOutput
+      self.gradInput:resizeAs(gradOutput):copy(gradOutput)
+      return self.gradInput
+   end
    if input:dim() == 3 then
       self.gradInput:resizeAs(input):zero()
       -- crop gradInput if necessary
