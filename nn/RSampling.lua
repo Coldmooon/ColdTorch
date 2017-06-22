@@ -115,3 +115,8 @@ function RSampling:updateGradInput(input, gradOutput)
 
    return self.gradInput
 end
+
+function RSampling:__tostring__()
+   s = string.format('%s(minShape=%d, maxShape=%d, diff=%s)', torch.type(self), self.minShape, self.maxShape, self.diff)
+   return s
+end
