@@ -3,10 +3,10 @@ local AutoPadding, parent = torch.class('nn.AutoPadding', 'nn.Module')
 function AutoPadding:__init(shape, diff)
    parent.__init(self)
    self.shape = shape
-   self.pad_l = nil
-   self.pad_r = nil
-   self.pad_t = nil
-   self.pad_b = nil
+   self.pad_l = 0
+   self.pad_r = 0
+   self.pad_t = 0
+   self.pad_b = 0
    self.train = true
    self.diff  = diff or false
 end
