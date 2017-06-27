@@ -13,7 +13,7 @@ function RSampling:__init(minShape, maxShape, diff, verbose)
    self.isverbose = verbose or false
 end
 
-local function verbose(...)
+function RSampling:verbose(...)
    if self.isverbose then print('<nn.RSampling:> ', ...) end
 end
 
@@ -49,12 +49,12 @@ end
 function RSampling:updateOutput(input)
 
    if (not self.train) and self.diff then
-      verbose('skip forward in RSampling')
+      self:verbose('skip forward in RSampling')
       self.output:resizeAs(input):copy(input)
    else 
       s = torch.random(self.minShape, self.maxShape)
       self.owidth, self.oheight = s, s
-      verbose('random shape: ', s)
+      self:verbose('random shape: ', s)
       assert(input:dim() == 4 or input:dim()==3,
                'RSampling only supports 3D or 4D tensors' )
       input = makeContiguous(self, input)
@@ -83,7 +83,7 @@ end
 function RSampling:updateGradInput(input, gradOutput)
 
    if (not self.train) and self.diff then
-      verbose('skip backward in RSampling')
+      self:verbose('skip backward in RSampling')
       self.gradInput = gradOutput  
    else 
       assert(input:dim() == 4 or input:dim()==3,

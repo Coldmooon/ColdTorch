@@ -12,7 +12,7 @@ function AutoPadding:__init(shape, diff, verbose)
    self.isverbose = verbose or false
 end
 
-local function verbose(...)
+function AutoPadding:verbose(...)
    if self.isverbose then print('<nn.AutoPadding:> ', ...) end
 end
 
@@ -30,7 +30,7 @@ end
 
 function AutoPadding:updateOutput(input)
    if (not self.train) and self.diff then 
-      verbose('skip forward in AutoPadding')
+      self:verbose('skip forward in AutoPadding')
       self.output:resizeAs(input):copy(input)
       return self.output
    end
@@ -93,7 +93,7 @@ function AutoPadding:updateOutput(input)
          error('output shape computed wrong') 
       end
       if w < 1 or h < 1 then error('input is too small') end
-      verbose('auto cropping to ', h, 'x', w)
+      self:verbose('auto cropping to ', h, 'x', w)
       self.output:resize(input:size(1), input:size(2), h, w)
       self.output:zero()
       -- crop input if necessary
@@ -118,7 +118,7 @@ end
 
 function AutoPadding:updateGradInput(input, gradOutput)
    if (not self.train) and self.diff then 
-      verbose('skip backward in AutoPadding')
+      self:verbose('skip backward in AutoPadding')
       -- self.gradInput = gradOutput
       self.gradInput:resizeAs(gradOutput):copy(gradOutput)
       return self.gradInput

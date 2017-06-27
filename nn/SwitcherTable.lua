@@ -1,6 +1,6 @@
 local SwitcherTable, parent = torch.class('nn.SwitcherTable', 'nn.Module')
 
-function SwitcherTable:__init(mode, ip)
+function SwitcherTable:__init(mode, ip, verbose)
    parent.__init(self)
    self.inplace = ip and false
    self.gradInput = {}
@@ -10,7 +10,7 @@ function SwitcherTable:__init(mode, ip)
    self.isverbose = verbose or false
 end
 
-local function verbose(...)
+function SwitcherTable:verbose(...)
    if self.isverbose then print('<nn.SwitcherTable:> ', ...) end
 end
 
@@ -43,7 +43,7 @@ function SwitcherTable:updateOutput(input)
       	 self.index = i
       end
    end
-   verbose('Forward Pass: using the stream No.' .. self.index)
+   self:verbose('Forward Pass: using the stream No.' .. self.index)
    if self.inplace then
       self.output:set(input[self.index])
    else
@@ -59,7 +59,7 @@ function SwitcherTable:updateGradInput(input, gradOutput)
       self.gradInput[i] = self.gradInput[i] or input[1].new()
       self.gradInput[i]:resizeAs(input[i]):fill(0.0)
       if i == self.index then
-         verbose('Backward Pass: setting the stream No.' .. self.index .. 'to Identity'
+         self:verbose('Backward Pass: setting the stream No.' .. self.index .. 'to Identity')
 	      if self.inplace then
 	         self.gradInput[i]:set(gradOutput) -- never used
 	      else
