@@ -1,7 +1,7 @@
 require 'nn.THNN'
 local RSampling, parent = torch.class('nn.RSampling', 'nn.Module')
 
-function RSampling:__init(minShape, maxShape, diff)
+function RSampling:__init(minShape, maxShape, diff, verbose)
    parent.__init(self)
    self.owidth, self.oheight = nil, nil
    self.minShape = minShape
@@ -10,6 +10,11 @@ function RSampling:__init(minShape, maxShape, diff)
    self.outputSize = torch.LongStorage(4)
    self.train = true
    self.diff = diff or false
+   self.isverbose = verbose or false
+end
+
+local function verbose(...)
+   if self.isverbose then print('<nn.RSampling:> ', ...) end
 end
 
 local function makeContiguous(self, input, gradOutput)
@@ -44,12 +49,12 @@ end
 function RSampling:updateOutput(input)
 
    if (not self.train) and self.diff then
-      print('skip forward in RSampling')
+      verbose('skip forward in RSampling')
       self.output:resizeAs(input):copy(input)
    else 
       s = torch.random(self.minShape, self.maxShape)
       self.owidth, self.oheight = s, s
-      print('random shape: ', s)
+      verbose('random shape: ', s)
       assert(input:dim() == 4 or input:dim()==3,
                'RSampling only supports 3D or 4D tensors' )
       input = makeContiguous(self, input)
@@ -78,7 +83,7 @@ end
 function RSampling:updateGradInput(input, gradOutput)
 
    if (not self.train) and self.diff then
-      print('skip backward in RSampling')
+      verbose('skip backward in RSampling')
       self.gradInput = gradOutput  
    else 
       assert(input:dim() == 4 or input:dim()==3,
