@@ -49,7 +49,7 @@ end
 function RSampling:updateOutput(input)
 
    if (not self.train) and self.diff then
-      self:verbose('skip forward in RSampling')
+      self:verbose('skip forward pass during test')
       self.output:resizeAs(input):copy(input)
    else 
       s = torch.random(self.minShape, self.maxShape)
@@ -83,7 +83,7 @@ end
 function RSampling:updateGradInput(input, gradOutput)
 
    if (not self.train) and self.diff then
-      self:verbose('skip backward in RSampling')
+      self:verbose('skip backward pass during test')
       self.gradInput = gradOutput  
    else 
       assert(input:dim() == 4 or input:dim()==3,

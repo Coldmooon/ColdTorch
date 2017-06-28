@@ -59,7 +59,7 @@ function SwitcherTable:updateGradInput(input, gradOutput)
       self.gradInput[i] = self.gradInput[i] or input[1].new()
       self.gradInput[i]:resizeAs(input[i]):fill(0.0)
       if i == self.index then
-         self:verbose('Backward Pass: setting the stream No.' .. self.index .. 'to Identity')
+         self:verbose('Backward Pass: setting the stream No.' .. self.index .. ' to Identity')
 	      if self.inplace then
 	         self.gradInput[i]:set(gradOutput) -- never used
 	      else

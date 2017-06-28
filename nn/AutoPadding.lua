@@ -30,7 +30,7 @@ end
 
 function AutoPadding:updateOutput(input)
    if (not self.train) and self.diff then 
-      self:verbose('skip forward in AutoPadding')
+      self:verbose('skip forward pass during test')
       self.output:resizeAs(input):copy(input)
       return self.output
    end
@@ -118,7 +118,7 @@ end
 
 function AutoPadding:updateGradInput(input, gradOutput)
    if (not self.train) and self.diff then 
-      self:verbose('skip backward in AutoPadding')
+      self:verbose('skip backward pass during test')
       -- self.gradInput = gradOutput
       self.gradInput:resizeAs(gradOutput):copy(gradOutput)
       return self.gradInput
