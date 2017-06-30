@@ -1,12 +1,13 @@
 local SwitcherTable, parent = torch.class('nn.SwitcherTable', 'nn.Module')
 
-function SwitcherTable:__init(mode, inplcae, verbose)
+function SwitcherTable:__init(trainmode, testmode, inplcae, verbose)
    parent.__init(self)
    self.inplace = inplcae and false
    self.gradInput = {}
    self.index = 1
-   self.res = 0
-   self.mode = mode or 'mean'
+   self.trainmode = trainmode or 'maxmax'
+   self.testmode = testmode or 'maxmax'
+   self.train = true
    self.isverbose = verbose or false
 end
 
@@ -14,36 +15,129 @@ function SwitcherTable:verbose(...)
    if self.isverbose then print('<nn.SwitcherTable:> ', ...) end
 end
 
-local function value_with_mode(x, mode)
+local function statistic(x, mode)
 
    local res = nil
    if mode == 'mean' then
+      -- print('computing the statistics of feature maps [mean]')
       res = torch.mean(x)
    elseif mode == 'max' then
-   	res = torch.max(x)
+      -- print('computing the statistics of feature maps [max]')
+      res = torch.max(x)
    elseif mode == 'min' then
-   	res = torch.min(x)
+      -- print('computing the statistics of feature maps [min]')
+      res = torch.min(x)
    elseif mode == 'median' then
-   	res = torch.median(x)
+      -- print('computing the statistics of feature maps [median]')
+      res = torch.median(x)
    else
-   	error('unknown mode.')
+      error('unknown mode.')
    end
 
    return res
 end
 
-function SwitcherTable:updateOutput(input)
+-- not used yet
+local function dual_operator(op)
 
-   self.res = value_with_mode(input[1], self.mode)
-   self.index = 1
+   local dual_op = nil
+
+   if op == 'max' then
+      dual_op = 'min'
+   elseif op == 'min' then
+      dual_op = 'max'
+   elseif op == 'mean' then
+      dual_op = 'mean'
+   else
+      error('unknown operator')
+   end
+   
+   return dual_op
+end
+
+local function assign_op(mode)
+
+   local to_compare = 'max'
+   local op = 'max'
+
+   if mode == 'maxmax' then
+      to_compare = 'max'
+      op = 'max'
+   elseif mode == 'maxmin' then
+      to_compare = 'max'
+      op = 'min'
+   elseif mode == 'maxmean' then
+      to_compare = 'max'
+      op = 'mean'
+   elseif mode == 'minmax' then
+      to_compare = 'min'
+      op = 'max'
+   elseif mode == 'minmin' then
+      to_compare = 'min'
+      op = 'min'
+   elseif mode == 'minmean' then
+      to_compare = 'min'
+      op = 'mean'
+   elseif mode:find('random') then
+      to_compare = 'random'
+      op = ''
+   else
+      error('unknown mode')
+   end
+
+   return to_compare, op
+
+end
+
+local function contest(input, compare_mode, op_for_feature)
+
+   if compare_mode == 'random' then
+      -- print('randomly output an stream without computing the statistics')
+      return torch.random(1, #input)
+   end
+
+   local res = statistic(input[1], op_for_feature)
+   local winner = 1
+
    for i = 2, #input do
-      res_tmp = value_with_mode(input[i], self.mode)
-      if res_tmp > self.res then
-      	self.res = res_tmp
-      	self.index = i
+      local res_tmp = statistic(input[i], op_for_feature)
+      if compare_mode == 'max' then
+         -- print('compare the statistics of feature maps among streams by max')
+         if res_tmp > res then
+            res = res_tmp
+            winner = i
+         end
+      elseif compare_mode == 'min' then 
+         --  print('compare the statistics of feature maps among streams by min')
+         if res_tmp < res then
+            res = res_tmp
+            winner = i
+         end
+      else
+          error('unknown comparison mode')
       end
    end
-   self:verbose('Forward Pass: using the stream No.' .. self.index)
+
+   return winner
+
+end
+
+function SwitcherTable:updateOutput(input)
+   
+   local compare_mode = nil
+   local op_for_feautre = nil
+
+   if self.train then
+      compare_mode, op_for_feature = assign_op(self.trainmode)
+      self:verbose(string.format('using %s%s at training stage', compare_mode, op_for_feature))
+   else
+      compare_mode, op_for_feature = assign_op(self.testmode)
+      self:verbose(string.format('using %s%s at test stage', compare_mode, op_for_feature))
+   end
+
+   self.index = contest(input, compare_mode, op_for_feature)
+   self:verbose('Forward Pass: output the stream No.' .. self.index)
+
    if self.inplace then
       self.output:set(input[self.index])
    else
@@ -60,12 +154,12 @@ function SwitcherTable:updateGradInput(input, gradOutput)
       self.gradInput[i]:resizeAs(input[i]):fill(0.0)
       if i == self.index then
          self:verbose('Backward Pass: setting the stream No.' .. self.index .. ' to Identity')
-	      if self.inplace then
-	         self.gradInput[i]:set(gradOutput) -- never used
-	      else
-	         self.gradInput[i]:copy(gradOutput)
-	      end
-	  end
+         if self.inplace then
+            self.gradInput[i]:set(gradOutput) -- never used
+         else
+            self.gradInput[i]:copy(gradOutput)
+         end
+      end
    end
 
    for i=#input+1, #self.gradInput do
@@ -76,6 +170,6 @@ function SwitcherTable:updateGradInput(input, gradOutput)
 end
 
 function SwitcherTable:__tostring__()
-   s = string.format('%s(mode=%s, inplace=%s)', torch.type(self), self.mode, self.inplace)
+   s = string.format('%s(trainmode=%s, testmode=%s, inplace=%s)', torch.type(self), self.trainmode, self.testmode, self.inplace)
    return s
 end

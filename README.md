@@ -23,10 +23,20 @@ When `diff = false`, AutoPadding layer will use identity transformation during t
 
 ### SwitcherTable
 
-Only output the winner stream.
+This layer first computes the statistic of feature maps for each stream. 
+Then, the statistics of all streams are compared through the given mode.
+Finally, only the winner stream is outputted.
+
+The statistics computed can be `max`, `min`, `mean`, or `median`.
+The comparison mode can be `>(max)`, `<(min)`, or `random`
+
+The mode is encoded by `[comparison mode + statistic]`
+
+For example, `trainmode='maxmin'` and `testmode='randommax'` mean that compute the min value of feature maps of each stream,
+and output the stream having the max statistics during training, but randomly output an stream (max is ignored) during test.
 
 ```
-nn.SwitcherTable(mode='mean', inplace=false, verbose=false)
+nn.SwitcherTable(trainmode='maxmax', testmode='maxmax', inplace=false, verbose=false)
 ```
 
 ```
@@ -39,7 +49,7 @@ n:add(nn.Linear(10,10))
 n:add(nn.Linear(10,10))
 
 m = nn.Sequential()
-m:add(n):add(nn.SwitcherTable('max'))
+m:add(n):add(nn.SwitcherTable('maxmin', 'minmax'))
 
 m:forward(x)
 m:backward(x, diff)
