@@ -22,7 +22,7 @@ end
 
 function Diffraction:updateOutput(input)
 
-   local location = torch.random(self.min, self.max)
+   local location = torch.uniform(self.min, self.max)
    self:verbose('Picked up a random value: ', location)
    if torch.type(location) == 'number' then
       location = torch.Tensor{location}
