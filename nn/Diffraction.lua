@@ -8,11 +8,14 @@
 ------------------------------------------------------------------------
 local Diffraction, parent = torch.class("nn.Diffraction", "nn.Module")
 
-function Diffraction:__init(min, max, nInputDim, verbose)
+function Diffraction:__init(min, max, nInputDim, isangle, diff, verbose)
+   parent.__init(self)
    self.min = min
    self.max = max
    self.nInputDim = nInputDim
-   parent.__init(self)
+   self.isangle = isangle or true
+   self.train = true
+   self.diff = diff or false
    self.isverbose = verbose or false
 end
 
@@ -22,8 +25,20 @@ end
 
 function Diffraction:updateOutput(input)
 
-   local location = torch.uniform(self.min, self.max)
-   self:verbose('Picked up a random value: ', location)
+   local location = nil
+
+   if (not self.train) and self.diff then
+      location = 0
+      self:verbose('Rotation is skipped during test')
+   elseif self.isangle then
+      location = torch.random(self.min, self.max)
+      self:verbose('Picked up a random integer: ', location)
+      location = location * 2 * math.pi / 360
+   else
+      location = torch.uniform(self.min, self.max)
+      self:verbose('Picked up a random float value: ', location)
+   end
+
    if torch.type(location) == 'number' then
       location = torch.Tensor{location}
    end
@@ -46,6 +61,6 @@ function Diffraction:updateGradInput(input, gradOutput)
 end
 
 function Diffraction:__tostring__()
-   s = string.format('%s(min=%d, max=%d, nInputDim=%d)', torch.type(self), self.min, self.max, self.nInputDim)
+   s = string.format('%s(min=%f, max=%f, nInputDim=%d, isangle=%s, diff=%s)', torch.type(self), self.min, self.max, self.nInputDim, self.isangle, self.diff)
    return s
 end
