@@ -26,10 +26,17 @@ local function statistic(x, mode)
       res = torch.max(x)
    elseif mode == 'min' then
       -- print('computing the statistics of feature maps [min]')
-      res = torch.min(x)
+      local y = torch.sort(torch.abs(x):view(1,-1))
+      local id = y:nonzero() -- remove zeros
+      res = y[id[1][1]][id[1][2]]
    elseif mode == 'median' then
       -- print('computing the statistics of feature maps [median]')
-      res = torch.median(x)
+      local y = x:view(1,-1):float() -- copy to CPU
+      res = torch.median(y) -- get median
+      res = torch.min(res) -- convert tensor to number type
+   elseif mode == 'norm' then
+      -- print('computing the statistics of feature maps [norm]')
+      res = torch.norm(x)
    else
       error('unknown mode.')
    end
@@ -78,6 +85,18 @@ local function assign_op(mode)
    elseif mode == 'minmean' then
       to_compare = 'min'
       op = 'mean'
+   elseif mode == 'minmedian' then
+      to_compare = 'min'
+      op = 'median'
+   elseif mode == 'maxmedian' then
+      to_compare = 'max'
+      op = 'median'
+   elseif mode == 'minnorm' then
+      to_compare = 'min'
+      op = 'norm'
+   elseif mode == 'maxnorm' then
+      to_compare = 'max'
+      op = 'norm'
    elseif mode:find('random') then
       to_compare = 'random'
       op = ''
