@@ -13,7 +13,7 @@ function Diffraction:__init(min, max, nInputDim, isangle, diff, verbose)
    self.min = min
    self.max = max
    self.nInputDim = nInputDim
-   self.isangle = isangle or true
+   self.isangle = isangle or false
    self.train = true
    self.diff = diff or false
    self.isverbose = verbose or false
