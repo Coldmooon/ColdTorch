@@ -93,7 +93,7 @@ function AutoPadding:updateOutput(input)
          error('output shape computed wrong') 
       end
       if w < 1 or h < 1 then error('input is too small') end
-      self:verbose('auto cropping to ', h, 'x', w)
+      self:verbose('auto cropping to ', h, 'x', w, 'padded by: l ', self.pad_l, ' r ', self.pad_r, ' t ', self.pad_t, ' b ', self.pad_b)
       self.output:resize(input:size(1), input:size(2), h, w)
       self.output:zero()
       -- crop input if necessary
