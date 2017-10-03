@@ -55,6 +55,29 @@ m:forward(x)
 m:backward(x, diff)
 ```
 
+### RandomCropping
+
+Randomly crop or pad its input to the given shape. This layer is similar to the AutoPadding. The difference is that the AutoPadding module perform center cropping or padding while this layer does this randomly.
+
+```
+nn.RandCropping(shape, diff=false, verbose=false)
+```
+
+### Diffraction
+
+Sample a random value from the given distribution. This layer uses the name `Diffraction` since its function is similar to the diffraction of light. During backward, the returned gradInput is a zero Tensor of the same size as the input.
+
+```
+nn.Diffraction(min, max, nInputDim, isangle=false, diff=false, verbose=false)
+```
+The parameters are the following:
+  * `min`: the min value of uniform distribution 
+  * `max`: the max value of uniform distribution
+  * `nInputDIm`: if nInputDim is specified, it uses the input to determine the size of the batch.
+  * `isangle`: if isangle is `true`, the min and max will be converted to radian value.
+  * `diff`: if `diff` is true, this layer will perform `Identity()` transformation during backward.
+  * `verbose`: if `versbose` is true, DEBUG information will be outputted.
+
 # Installation
 
 1. Copy layers you want to `torch/extra/nn`
