@@ -77,6 +77,13 @@ local function assign_op(mode)
    elseif mode == 'maxmean' then
       to_compare = 'max'
       op = 'mean'
+   elseif mode == 'maxmedian' then
+      to_compare = 'max'
+      op = 'median'
+   elseif mode == 'maxnorm' then
+      to_compare = 'max'
+      op = 'norm'
+
    elseif mode == 'minmax' then
       to_compare = 'min'
       op = 'max'
@@ -89,18 +96,26 @@ local function assign_op(mode)
    elseif mode == 'minmedian' then
       to_compare = 'min'
       op = 'median'
-   elseif mode == 'maxmedian' then
-      to_compare = 'max'
-      op = 'median'
    elseif mode == 'minnorm' then
       to_compare = 'min'
       op = 'norm'
-   elseif mode == 'maxnorm' then
-      to_compare = 'max'
-      op = 'norm'
+
+   elseif mode == 'medianmax' then
+      to_compare = 'median'
+      op = 'max'
+   elseif mode == 'medianmin' then
+      to_compare = 'median'
+      op = 'min'
+   elseif mode == 'medianmean' then
+      to_compare = 'median'
+      op = 'mean'
+   elseif mode == 'medianmedian' then
+      to_compare = 'median'
+      op = 'median'
    elseif mode == 'mediannorm' then
       to_compare = 'median'
       op = 'norm'
+
    elseif mode:find('random') then
       to_compare = 'random'
       op = ''
