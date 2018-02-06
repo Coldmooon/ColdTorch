@@ -26,9 +26,10 @@ local function statistic(x, mode)
       res = torch.max(x)
    elseif mode == 'min' then
       -- print('computing the statistics of feature maps [min]')
-      local y = torch.sort(torch.abs(x):view(1,-1))
-      local id = y:nonzero() -- remove zeros
-      res = y[id[1][1]][id[1][2]]
+      -- local y = torch.sort(torch.abs(x):view(1,-1))
+      -- local id = y:nonzero() -- remove zeros
+      -- res = y[id[1][1]][id[1][2]]
+      res = torch.min(x)
    elseif mode == 'median' then
       -- print('computing the statistics of feature maps [median]')
       local y = x:view(1,-1):float() -- copy to CPU
@@ -97,6 +98,9 @@ local function assign_op(mode)
    elseif mode == 'maxnorm' then
       to_compare = 'max'
       op = 'norm'
+   elseif mode == 'mediannorm' then
+      to_compare = 'median'
+      op = 'norm'
    elseif mode:find('random') then
       to_compare = 'random'
       op = ''
@@ -113,6 +117,18 @@ local function contest(input, compare_mode, op_for_feature)
    if compare_mode == 'random' then
       -- print('randomly output an stream without computing the statistics')
       return torch.random(1, #input)
+   end
+   
+   if compare_mode == 'median' then   
+      local stats = torch.zeros(#input)
+      for i = 1, #input do
+         stats[i] = statistic(input[i], op_for_feature)      
+      end
+      
+      sorted_stats, positions = stats:sort()
+      winner = positions[torch.ceil(#input/2)]
+
+      return winner
    end
 
    local res = statistic(input[1], op_for_feature)
